@@ -44,7 +44,7 @@ public class Cgccli {
                 if ("projects".equals(args[2]) && "list".equals(args[3]) && args.length == 4) {
                     // List all projects for the current token
                     // Usage: cgccli --token {token} projects list
-                    List<Project> projects = GetProjects(token);
+                    List<Project> projects = getProjects(token);
                     for (Project project : projects) {
                         System.out.println(project);
                     }
@@ -56,7 +56,7 @@ public class Cgccli {
 
                             // List all files within a project
                             // Usage: cgccli --token {token} files list --project test/simons-genome-diversity-project-sgdp
-                            List<File> files = GetFiles(token, projectId);
+                            List<File> files = getFiles(token, projectId);
                             for (File file : files) {
                                 System.out.println(file);
                             }
@@ -69,16 +69,16 @@ public class Cgccli {
 
                         if ("stat".equals(args[3]) && args.length == 6) {
                             // List file details
-                            File fileDetailed = GetFileDetails(token, fileId);
+                            File fileDetailed = getFileDetails(token, fileId);
                             System.out.println(fileDetailed);
                         } else if ("download".equals(args[3]) && "--dest".equals(args[6])
                                 && args.length == 8) {
                             // Download the file to the specified location
                             // Usage: cgccli --token {token} files download --file {file_id} --dest/tmp/foo.bar
                             String destination = args[7];
-                            String link = GetFileDownloadLink(token, fileId);
+                            String link = getFileDownloadLink(token, fileId);
                             if (!link.isEmpty()) {
-                                DownloadFileNIO(link, destination);
+                                downloadFileNIO(link, destination);
                             } else {
                                 System.out.println("Error: Couldn't get the download link");
                             }
@@ -95,7 +95,7 @@ public class Cgccli {
                             // Update file details
                             // Usage: cgccli --token {token} files update --file {file_id}
                             // metadata.sample_id=asdasf name=bla tags=abc,def
-                            FormatPropertiesAndUpdateFile(token, fileId, propertiesToUpdate);
+                            formatPropertiesAndUpdateFile(token, fileId, propertiesToUpdate);
                         }
                         else {
                             throw new InvalidParameterException("Unsupported command");
@@ -111,44 +111,9 @@ public class Cgccli {
         } catch (InvalidParameterException ex) {
             System.out.println("Error: " + ex.getMessage());
         }
-        
-//        String token = "2b09b2ff1da94c5eb7d1c30c47dcee3c";
-//        String projectId = "lukpot_test/copy-of-simons-genome-diversity-project-sgdp";
-//        String fileId = "5bdc3c49e4b06c4edd734eec";
-//        
-//        File fileDetailed = GetFileDetails(token, fileId);
-//        System.out.println(fileDetailed);
-//         
-//        Map<String, String> metadataMap = new HashMap<>();
-//        metadataMap.put("testmetakey", "testmetavalue");
-//        metadataMap.put("testmetakey2", "testmetavalue2");
-//        
-//        List<String> tagsList = new ArrayList<>();
-//        tagsList.add("testtag4");
-//        tagsList.add("testtag5");
-//                
-//        UpdateFileDetails(token, fileId, null, null, tagsList);
-//        
-//        fileDetailed = GetFileDetails(token, fileId);
-//        System.out.println(fileDetailed);
-//        
-//        String link = GetFileDownloadLink(token, fileId);
-//        
-//        //DownloadFile(link, "C:\\Users\\Home\\Desktop\\down.test");
-//        DownloadFileNIO(link, "C:\\Users\\Home\\Desktop\\down2.test");
-//        
-//        List<Project> projects = GetProjects(token);
-//        for (Project project : projects) {
-//            System.out.println(project);
-//        }
-//
-//        List<File> files = GetFiles(token, projectId);
-//        for (File file : files) {
-//            System.out.println(file);
-//        }
     }
     
-    private static List<Project> GetProjects(String token) {
+    private static List<Project> getProjects(String token) {
         boolean hasMorePages;
         String request = "https://cgc-api.sbgenomics.com/v2/projects";
         List<Project> projects = new ArrayList<Project>();
@@ -206,7 +171,7 @@ public class Cgccli {
         return projects;
     }
     
-    private static List<File> GetFiles(String token, String projectId) {
+    private static List<File> getFiles(String token, String projectId) {
         boolean hasMorePages;
         String request = "https://cgc-api.sbgenomics.com/v2/files?project="
                 + projectId;
@@ -266,7 +231,7 @@ public class Cgccli {
         return files;
     }
     
-    private static File GetFileDetails(String token, String fileId) {
+    private static File getFileDetails(String token, String fileId) {
         String request = "https://cgc-api.sbgenomics.com/v2/files/" + fileId;
         File file = null;
         try {
@@ -283,7 +248,7 @@ public class Cgccli {
                     return file;
                 }
                 JSONObject obj = node.getBody().getObject();
-                file = GetFileFromJSON(obj);
+                file = getFileFromJSON(obj);
         } catch (UnirestException ex) {
             Logger.getLogger(Cgccli.class.getName()).log(Level.SEVERE, null, ex);
             System.out.println("Error: " + ex.getMessage());
@@ -292,7 +257,7 @@ public class Cgccli {
         return file;
     }
     
-    private static Map<String, String> GetMapFromJSON(JSONObject jsonObject) {
+    private static Map<String, String> getMapFromJSON(JSONObject jsonObject) {
         Map<String, String> map = new HashMap<String, String>();
 
         for (String key : jsonObject.keySet()) {
@@ -302,7 +267,7 @@ public class Cgccli {
         return map;
     }
     
-    private static List<String> GetListFromJSONArray(JSONArray array) {
+    private static List<String> getListFromJSONArray(JSONArray array) {
         List<String> list = new ArrayList<String>();
         
         Iterator<Object> iterator = array.iterator();
@@ -313,7 +278,7 @@ public class Cgccli {
         return list;
     }
     
-    private static File GetFileFromJSON(JSONObject obj) {
+    private static File getFileFromJSON(JSONObject obj) {
                 String href = obj.getString("href");
                 String id = obj.getString("id");
                 String name = obj.getString("name");
@@ -323,10 +288,10 @@ public class Cgccli {
                 String modifiedOn = obj.getString("modified_on");
                 String type = obj.getString("type");
                 String parent = obj.getString("parent");
-                Map<String, String> storageMap = GetMapFromJSON(obj.getJSONObject("storage"));
-                Map<String, String> originMap = GetMapFromJSON(obj.getJSONObject("origin"));
-                List<String> tagsList = GetListFromJSONArray(obj.getJSONArray("tags"));
-                Map<String, String> metadataMap = GetMapFromJSON(obj.getJSONObject("metadata"));                
+                Map<String, String> storageMap = getMapFromJSON(obj.getJSONObject("storage"));
+                Map<String, String> originMap = getMapFromJSON(obj.getJSONObject("origin"));
+                List<String> tagsList = getListFromJSONArray(obj.getJSONArray("tags"));
+                Map<String, String> metadataMap = getMapFromJSON(obj.getJSONObject("metadata"));                
                 
                 return new File(
                         href,
@@ -344,7 +309,7 @@ public class Cgccli {
                         metadataMap);
     }
     
-    private static String GetFileDownloadLink(String token, String fileId) {
+    private static String getFileDownloadLink(String token, String fileId) {
         String request = "https://cgc-api.sbgenomics.com/v2/files/{file_id}/download_info";
         String link = "";
         try {
@@ -372,7 +337,7 @@ public class Cgccli {
         return link;
     }
     
-    private static void DownloadFile(String link, String destination) {
+    private static void downloadFile(String link, String destination) {
         try {
             // 20 minutes timeout
             FileUtils.copyURLToFile(new URL(link), new java.io.File(destination), 1200000, 1200000);
@@ -386,7 +351,7 @@ public class Cgccli {
     }
     
     // Potentially faster than DownloadFile
-    private static void DownloadFileNIO(String link, String destination) {
+    private static void downloadFileNIO(String link, String destination) {
         FileOutputStream fos = null;
         try {
             URL url = new URL(link);
@@ -411,7 +376,7 @@ public class Cgccli {
         }
     }
     
-    private static void FormatPropertiesAndUpdateFile(String token, String fileId,
+    private static void formatPropertiesAndUpdateFile(String token, String fileId,
             Map<String, String> propertiesMap) throws InvalidParameterException {
         String name = "";
         Map<String, String> metadataMap = new HashMap<String, String>();
@@ -432,10 +397,10 @@ public class Cgccli {
             }
         }
         
-        UpdateFileDetails(token, fileId, name, metadataMap, tagsList);
+        updateFileDetails(token, fileId, name, metadataMap, tagsList);
     }
     
-    private static void UpdateFileDetails(String token, String fileId,
+    private static void updateFileDetails(String token, String fileId,
             String newFileName, Map<String, String> metadataMap, List<String> tagsList) {
         String request = "https://cgc-api.sbgenomics.com/v2/files/" + fileId;
 
@@ -475,7 +440,7 @@ public class Cgccli {
             if (status == HttpStatus.SC_OK) {
                 // If everything went ok, print the edited file
                 JSONObject obj = node.getBody().getObject();
-                System.out.println(GetFileFromJSON(obj));
+                System.out.println(getFileFromJSON(obj));
             }
             else {
                 System.out.println("Error: " + statusText);
