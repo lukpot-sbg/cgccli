@@ -5,19 +5,29 @@
  */
 package com.test.cgccli;
 
+import org.json.JSONObject;
+
 /**
  *
  * @author Luka Potkonjak
  */
 public class Project {
-    private String href;
-    private String id;
-    private String name;
+    private final String href;
+    private final String id;
+    private final String name;
 
     public Project(String href, String id, String name) {
         this.href = href;
         this.id = id;
         this.name = name;
+    }
+
+    public static Project getProjectFromJSON(JSONObject obj) {
+        String href = obj.getString("href");
+        String id = obj.getString("id");
+        String name = obj.getString("name");
+
+        return new Project(href, id, name);
     }
     
     public String toString() {
